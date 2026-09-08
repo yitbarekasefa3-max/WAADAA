@@ -1,0 +1,215 @@
+package com.erp.dashboard;
+
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+
+public class MainApp extends Application {
+
+    private BorderPane rootLayout;
+    private Label pageTitleLabel;
+    private StackPane contentArea;
+
+    @Override
+    public void start(Stage primaryStage) {
+        primaryStage.setTitle("ERP System - Dashboard");
+
+        rootLayout = new BorderPane();
+
+        // 1. Top Header Bar
+        HBox header = createHeader();
+        rootLayout.setTop(header);
+
+        // 2. Left Sidebar Navigation (Scrollable for full menu list)
+        ScrollPane sidebarScrollPane = new ScrollPane(createSidebar());
+        sidebarScrollPane.setFitToWidth(true);
+        sidebarScrollPane.setStyle("-fx-background-color: #2c3e50; -fx-background: #2c3e50;");
+        rootLayout.setLeft(sidebarScrollPane);
+
+        // 3. Center Content Area
+        contentArea = new StackPane();
+        contentArea.setPadding(new Insets(20));
+        contentArea.setStyle("-fx-background-color: #f4f6f9;");
+        
+        // Default View
+        navigateTo("HOME");
+
+        rootLayout.setCenter(contentArea);
+
+        Scene scene = new Scene(rootLayout, 1200, 750);
+        
+        // Optional: Inline styles for UI enhancements
+        scene.getStylesheets().add(getClass().getResource("/styles.css") != null 
+            ? getClass().getResource("/styles.css").toExternalForm() 
+            : "");
+
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private HBox createHeader() {
+        HBox header = new HBox();
+        header.setPadding(new Insets(15, 20, 15, 20));
+        header.setStyle("-fx-background-color: #1a252f;");
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        pageTitleLabel = new Label("Dashboard");
+        pageTitleLabel.setStyle("-fx-color: white; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Current User Info Badge
+        Label userInfo = new Label("Logged in as: Admin (John Doe)");
+        userInfo.setStyle("-fx-text-fill: #bdc3c7; -fx-font-size: 13px;");
+
+        header.getChildren().addAll(pageTitleLabel, spacer, userInfo);
+        return header;
+    }
+
+    private VBox createSidebar() {
+        VBox sidebar = new VBox();
+        sidebar.setPrefWidth(240);
+        sidebar.setSpacing(5);
+        sidebar.setPadding(new Insets(10, 0, 10, 0));
+        sidebar.setStyle("-fx-background-color: #2c3e50;");
+
+        // Menu items structured as defined in your request
+        String[] menuItems = {
+            "HOME", 
+            "Sales", 
+            "Credit Sales", 
+            "Purchases", 
+            "Inventory / Stock", 
+            "Expenses", 
+            "Customers & Suppliers", 
+            "Payments & Receivables", 
+            "Cash/Bank Transfers", 
+            "Profit & Loss", 
+            "Reports & Analytics", 
+            "Invoice & Receipt", 
+            "Partners", 
+            "Ware house", 
+            "Employees", 
+            "Profile", 
+            "Settings"
+        };
+
+        for (String item : menuItems) {
+            Button btn = createNavButton(item);
+            sidebar.getChildren().add(btn);
+        }
+
+        return sidebar;
+    }
+
+    private Button createNavButton(String text) {
+        Button btn = new Button(text);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setAlignment(Pos.CENTER_LEFT);
+        btn.setPadding(new Insets(10, 15, 10, 20));
+        btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-font-size: 13px; -fx-cursor: hand;");
+
+        // Hover Effect
+        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #34495e; -fx-text-fill: #ffffff; -fx-font-size: 13px; -fx-cursor: hand;"));
+        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ecf0f1; -fx-font-size: 13px; -fx-cursor: hand;"));
+
+        // Click Handler
+        btn.setOnAction(e -> navigateTo(text));
+
+        return btn;
+    }
+
+    private void navigateTo(String moduleName) {
+        pageTitleLabel.setText(moduleName);
+        contentArea.getChildren().clear();
+
+        // Switch panel content based on menu item selected
+        switch (moduleName) {
+            case "HOME":
+                contentArea.getChildren().add(createHomeView());
+                break;
+            case "Settings":
+                contentArea.getChildren().add(createSettingsView());
+                break;
+            default:
+                contentArea.getChildren().add(createGenericPlaceholderView(moduleName));
+                break;
+        }
+    }
+
+    // --- Module Views ---
+
+    private VBox createHomeView() {
+        VBox homeView = new VBox(15);
+        Label title = new Label("Welcome to ERP System Dashboard");
+        title.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
+
+        // Quick Stats Summary Cards
+        HBox cards = new HBox(15);
+        cards.getChildren().addAll(
+            createStatCard("Today Sales", "$1,250.00"),
+            createStatCard("Pending Receivables", "$4,800.00"),
+            createStatCard("Low Stock Items", "12 Items")
+        );
+
+        homeView.getChildren().addAll(title, cards);
+        return homeView;
+    }
+
+    private VBox createSettingsView() {
+        VBox settingsView = new VBox(15);
+        settingsView.setPadding(new Insets(10));
+
+        Label title = new Label("System Settings");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        CheckBox offlineDbToggle = new CheckBox("Enable Offline SQLite Database");
+        offlineDbToggle.setSelected(true);
+
+        CheckBox autoSaveToggle = new CheckBox("Enable Automatic Saving on Transactions");
+        autoSaveToggle.setSelected(true);
+
+        CheckBox transactionLoggingToggle = new CheckBox("Audit Log: Track User + Date + Time on every transaction");
+        transactionLoggingToggle.setSelected(true);
+
+        Button backupBtn = new Button("Backup Database Now");
+        Button restoreBtn = new Button("Restore Database from File");
+        Button userMgmtBtn = new Button("User Management & Permissions (RBAC)");
+
+        HBox btnBox = new HBox(10, backupBtn, restoreBtn, userMgmtBtn);
+
+        settingsView.getChildren().addAll(
+            title, 
+            offlineDbToggle, 
+            autoSaveToggle, 
+            transactionLoggingToggle, 
+            new Separator(), 
+            btnBox
+        );
+
+        return settingsView;
+    }
+
+    private VBox createGenericPlaceholderView(String moduleName) {
+        VBox box = new VBox(10);
+        box.setAlignment(Pos.TOP_LEFT);
+
+        Label label = new Label("Module: " + moduleName);
+        label.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+        Label desc = new Label("Content panel for managing " + moduleName.toLowerCase() + " operations.");
+        desc.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
+
+        box.getChildren().addAll(label, desc);
+        return box;
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
